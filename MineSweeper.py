@@ -12,7 +12,9 @@ class MineSweeper():
         self.tile_size = 30
         self.difficulty = {'easy' : (8,8, 20), 'medium' : (14,14, 50), 'hard' : (20,20, 99)} # rows, cols, mine count
         diff = 'hard'
-        self.fieldFrame = ctk.CTkFrame(self.root, width=700, height=700)
+        self.fieldFrame = ctk.CTkFrame(self.root)
+        self.border_frame = ctk.CTkFrame(self.root, width=self.fieldFrame.winfo_width(), height=self.fieldFrame.winfo_height(), border_color='white', border_width=8)
+        self.border_frame.place(relx=0.5, rely=0.5, anchor=self.center)
         self.fieldFrame.place(relx=0.5, rely=0.5, anchor=self.center)
         if diff == 'easy':
             self.root.geometry('420x420')
@@ -22,8 +24,12 @@ class MineSweeper():
             self.tile_size = 40
         else:
             pass
-            
+        
         self.createField(diff)
+        bar = ctk.CTkComboBox(self.root)
+        bar['values'] = ('Easy', 'Medium', 'Hard')
+        bar.grid(padx=10, pady=10)
+        
     
 
     def createField(self, diff: str):
@@ -53,6 +59,7 @@ class MineSweeper():
                 tile.place(relx=0.5, rely=0.5, anchor=self.center)
                 # dictionary to hold the tile's info
                 self.tiles[(i, j)] = f'{i,j}, mine: {mine}'
+                        
         del mines, rows, cols
 
     def tileSelected(self, i: int, j:int):

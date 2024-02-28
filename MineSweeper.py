@@ -11,11 +11,11 @@ class MineSweeper():
         self.tiles = {}
         self.tile_size = 30
         self.difficulty = {'easy' : (8,8, 20), 'medium' : (14,14, 50), 'hard' : (20,20, 99)} # rows, cols, mine count
-        diff = 'hard'
-        self.fieldFrame = ctk.CTkFrame(self.root)
-        self.border_frame = ctk.CTkFrame(self.root, width=self.fieldFrame.winfo_width(), height=self.fieldFrame.winfo_height(), border_color='white', border_width=8)
-        self.border_frame.place(relx=0.5, rely=0.5, anchor=self.center)
-        self.fieldFrame.place(relx=0.5, rely=0.5, anchor=self.center)
+        difficulty_menu = ctk.CTkComboBox(self.root, values=['Hard', 'Medium', 'Easy'], width=100)
+        difficulty_menu.grid(padx=10, pady=10)
+        diff = difficulty_menu.get().lower()
+        #difficulty_menu.bind("<<ComboboxSelected>>", lambda: self.fieldFrame.destroy())
+        self.fieldFrame = ctk.CTkFrame(self.root, border_color='white')
         if diff == 'easy':
             self.root.geometry('420x420')
             self.tile_size = 40
@@ -24,11 +24,9 @@ class MineSweeper():
             self.tile_size = 40
         else:
             pass
-        
         self.createField(diff)
-        bar = ctk.CTkComboBox(self.root)
-        bar['values'] = ('Easy', 'Medium', 'Hard')
-        bar.grid(padx=10, pady=10)
+        self.fieldFrame.place(relx=0.5, rely=0.5, anchor=self.center)
+
         
     
 
@@ -50,7 +48,7 @@ class MineSweeper():
                 elif (j+i)%2==1:
                     color = '#a0ce47'
                 # the tile itself attaching ontop of the frame
-                tile = ctk.CTkButton(frame, width=self.tile_size, height=self.tile_size, corner_radius=0 , text='', command=lambda i=i, j=j: self.tileSelected(i, j), fg_color=color)
+                tile = ctk.CTkButton(frame, width=self.tile_size, height=self.tile_size, corner_radius=0 , text='', command=lambda i=i, j=j: self.tileSelected(i, j, rows), fg_color=color)
                 # check the grid index and see if it should be a mine
                 if  (i,j) in mines:
                     tile.configure(False, fg_color='red')
@@ -58,12 +56,45 @@ class MineSweeper():
                 # place the tile on the frame rendering it visible
                 tile.place(relx=0.5, rely=0.5, anchor=self.center)
                 # dictionary to hold the tile's info
-                self.tiles[(i, j)] = f'{i,j}, mine: {mine}'
+                self.tiles[(i, j)] = (i,j,mine)
                         
-        del mines, rows, cols
+        del mines, cols
 
-    def tileSelected(self, i: int, j:int):
-        print(self.tiles[(i,j)])
+    def tileSelected(self, i: int, j:int, rows:int):
+        # same row
+        mines = 0
+        print(f'{self.tiles[(i, j)]}')
+        if (j-1) >= 0:
+            print(f'{self.tiles[(i, j-1)]}')
+            mines += 1 if self.tiles[(i, j-1)][2] == 1 else 0
+        if (j+1) <= rows:
+            print(f'{self.tiles[(i, j+1)]}')
+            mines += 1 if self.tiles[(i, j+1)][2] == 1 else 0
+        # top row
+        if (i-1) >= 0:
+            print(f'{self.tiles[(i-1, j)]}')
+            mines += 1 if self.tiles[(i-1, j)][2] == 1 else 0
+            if (j-1) >= 0:
+                print(f'{self.tiles[(i-1, j-1)]}')
+                mines += 1 if self.tiles[(i-1, j-1)][2] == 1 else 0
+            if (j+1) <= rows:
+                print(f'{self.tiles[(i-1, j+1)]}')
+                mines += 1 if self.tiles[(i-1, j+1)][2] == 1 else 0
+        # bottom row
+        if  (i + 1) <= rows:
+            print(f'{self.tiles[(i+1, j)]}')
+            mines += 1 if self.tiles[(i+1, j)][2] == 1 else 0
+            if (j-1) >= 0:
+                print(f'{self.tiles[(i+1, j-1)]}')
+                mines += 1 if self.tiles[(i+1, j-1)][2] == 1 else 0
+            if (j+1) <= rows:
+                print(f'{self.tiles[(i+1, j+1)]}')
+                mines += 1 if self.tiles[(i+1, j+1)][2] == 1 else 0
+        else:
+            pass
+        print(mines)
+        
+
 
 if __name__ == '__main__':
     # create root window

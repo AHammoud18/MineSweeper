@@ -48,7 +48,7 @@ class MineSweeper():
                 elif (j+i)%2==1:
                     color = '#a0ce47'
                 # the tile itself attaching ontop of the frame
-                tile = ctk.CTkButton(frame, width=self.tile_size, height=self.tile_size, corner_radius=0 , text='', command=lambda i=i, j=j: self.tileSelected(i, j, rows), fg_color=color)
+                tile = ctk.CTkButton(frame, width=self.tile_size, height=self.tile_size, corner_radius=0 , text='', command=lambda i=i, j=j: self.tileSelected(i, j, rows, cols), fg_color=color)
                 # check the grid index and see if it should be a mine
                 if  (i,j) in mines:
                     tile.configure(False, fg_color='red')
@@ -58,38 +58,29 @@ class MineSweeper():
                 # dictionary to hold the tile's info
                 self.tiles[(i, j)] = (i,j,mine)
                         
-        del mines, cols
+        del mines
 
-    def tileSelected(self, i: int, j:int, rows:int):
+    def columnCheck(self, i, j):
+        k = 0
+        for n in range(3):
+            if (i, (j-1)+n) in self.tiles:
+                k += 1 if self.tiles[(i, (j-1)+n)][2] == 1 else 0
+        return k
+            
+
+    def tileSelected(self, i: int, j:int, rows: int, cols: int):
         # same row
+        if self.tiles[(i, j)][2] == 1:
+            print('Game Over')
+            return -1
         mines = 0
-        print(f'{self.tiles[(i, j)]}')
-        if (j-1) >= 0:
-            print(f'{self.tiles[(i, j-1)]}')
-            mines += 1 if self.tiles[(i, j-1)][2] == 1 else 0
-        if (j+1) <= rows:
-            print(f'{self.tiles[(i, j+1)]}')
-            mines += 1 if self.tiles[(i, j+1)][2] == 1 else 0
+        mines += self.columnCheck(i, j)
         # top row
         if (i-1) >= 0:
-            print(f'{self.tiles[(i-1, j)]}')
-            mines += 1 if self.tiles[(i-1, j)][2] == 1 else 0
-            if (j-1) >= 0:
-                print(f'{self.tiles[(i-1, j-1)]}')
-                mines += 1 if self.tiles[(i-1, j-1)][2] == 1 else 0
-            if (j+1) <= rows:
-                print(f'{self.tiles[(i-1, j+1)]}')
-                mines += 1 if self.tiles[(i-1, j+1)][2] == 1 else 0
+            mines += self.columnCheck(i-1, j)
         # bottom row
-        if  (i + 1) <= rows:
-            print(f'{self.tiles[(i+1, j)]}')
-            mines += 1 if self.tiles[(i+1, j)][2] == 1 else 0
-            if (j-1) >= 0:
-                print(f'{self.tiles[(i+1, j-1)]}')
-                mines += 1 if self.tiles[(i+1, j-1)][2] == 1 else 0
-            if (j+1) <= rows:
-                print(f'{self.tiles[(i+1, j+1)]}')
-                mines += 1 if self.tiles[(i+1, j+1)][2] == 1 else 0
+        if  (i+1) < rows:
+            mines += self.columnCheck(i+1, j)
         else:
             pass
         print(mines)

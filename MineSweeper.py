@@ -49,11 +49,11 @@ class MineSweeper():
                     color = '#a0ce47'
                 # the tile itself attaching ontop of the frame
                 tile = ctk.CTkButton(frame, width=self.tile_size, height=self.tile_size, corner_radius=0 , text='', fg_color=color, hover_color='#a0de47', text_color='black')
-                tile.configure(command=lambda k=k, t=tile: self.tileSelected(diff, k, self.game_state,t))
+                tile.configure(command=lambda k=k: self.tileSelected(diff, k, self.game_state))
                 # place the tile on the frame rendering it visible
                 tile.place(relx=0.5, rely=0.5, anchor=self.center)
                 # dictionary to hold the tile's info
-                self.tiles[k] = [0, 0]
+                self.tiles[k] = [0, 0, True if j == 1 or j == 20 else False] # 3rd element is if a cell is on the edge
                 k += 1
         # create all possible tiles, then select random ones to become mines
         self.mines = random.sample([i for i in range(len(self.tiles))], self.difficulty[diff][2])
@@ -62,11 +62,10 @@ class MineSweeper():
                 self.tiles[key][0] = 1
     
         
-        
             
     def tileSelected(self, diff:str, k:int, game_state:int):
         mine_count = 0
-        rows = self.difficulty[diff][0]
+        row_count = self.difficulty[diff][0]
         tiles = self.field_frame.winfo_children() # list of buttons within the field frame
 
         if game_state == 0:
@@ -75,7 +74,7 @@ class MineSweeper():
             self.tiles[k][0] = 0 if self.tiles[k][0] == 1 else None
                 
             for key in self.tiles:
-                mine_count = self.mineCheck(key, rows, self.mines)
+                mine_count = self.mineCheck(key, row_count, self.mines)
                 self.tiles[key][1] = mine_count
                 
             self.game_state = 1
@@ -84,36 +83,41 @@ class MineSweeper():
         if self.tiles[k][0] == 1:
             print('Game Over')
             return -1
-        # iterate through all 9 spaces including the selected tile and mark them as mines if valid
-        empty_cells = []
-        self.removeTile(self.tiles[k][1], tiles[k-1].winfo_children()[0])
-        self.tiles.pop(k)
+        print(k)
+        if self.tiles[k][1] == 0:
+            print(f'vacant cells: {k}')
+            print(self.tiles)
+            for v in range(3):
+                i_0 = (k-1)+v
+                i_1 = ((k-row_count)-1)+v
+                i_2 = ((k+row_count)-1)+v
+                self.removeTile(0, i_0, tiles[i_0-1].winfo_children()[0]) if not self.tiles[i_0][2] else None
+                self.removeTile(0, i_1, tiles[i_1-1].winfo_children()[0]) if not self.tiles[i_1][2] else None
+                self.removeTile(0, i_2, tiles[i_2-1].winfo_children()[0]) if not self.tiles[i_2][2] else None
+        else:
+            self.removeTile(self.tiles[k][1],k, tiles[k-1].winfo_children()[0])
         
         # TODO - open up any empty space around the clicked one recursively until there are no more changes
         #print(f'mines near this cell: {k}')
 
-    def mineCheck(self,  k:int, rows: int, mines: list[int], tiles: list = None):
+    def mineCheck(self,  k:int, row_count: int, mines: list[int], tiles: list = None):
         mine_count = 0
-        cells = []
         for v in range(3):
-            i_0 = (k-1)+v
-            i_1 = ((k-20)-1)+v
-            i_2 = ((k+20)-1)+v
-            mine_count += 1 if i_0 in mines else 0
-            mine_count += 1 if i_1 in mines else 0
-            mine_count += 1 if i_2 in mines else 0
-
-        if mine_count < 1:
-            #print('')
-            pass
-            #print(cells)
+            i_0 = (k-1)+v if (k-1)+v in self.tiles else None
+            i_1 = ((k-row_count)-1)+v if ((k-row_count)-1)+v in self.tiles else None
+            i_2 = ((k+row_count)-1)+v if ((k+row_count)-1)+v in self.tiles else None
+            mine_count += 1 if i_0 != None and i_0 in mines and not self.tiles[i_0][2] else 0
+            mine_count += 1 if i_1 != None and i_1 in mines and not self.tiles[i_1][2] else 0
+            mine_count += 1 if i_2 != None and i_2 in mines and not self.tiles[i_2][2] else 0
         return mine_count
 
 
-    def removeTile(self, mine_count: int, t:ctk.CTkButton = None):
+    def removeTile(self, mine_count: int, index: int, tile_button:ctk.CTkButton = None):
         colors = ('#ffffff', '#3bdb63', '#3bdbb3', '#3b5bdb', '#713bdb', '#b13bdb', '#db3bbe', '#db3b76', '#db3b3b')
-        t.configure(False, fg_color='transparent', hover=False, text=f'{mine_count}' if mine_count > 0 else '', text_color=colors[mine_count], font=ctk.CTkFont(family="Helvetica", size=16, weight="bold"))
-        t.configure(command=None)
+        tile_button.configure(False, fg_color='transparent', hover=False, text=f'{mine_count}' if mine_count > 0 else '', text_color=colors[mine_count], font=ctk.CTkFont(family="Helvetica", size=16, weight="bold"))
+        tile_button.configure(command=None)
+        self.tiles.pop(index)
+        
 
 if __name__ == '__main__':
     # create root window
